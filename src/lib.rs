@@ -80,9 +80,15 @@ macro_rules! TimerStruct {
 
       #[allow(unused)]
       pub fn print(&self) {
+        println!("Average time:");
         $(
           let dur = self.$name.duration.as_secs_f32() / self.$name.count as f32;
-          println!("{}: {dur}", stringify!($name));
+          println!("- {}: {dur}", stringify!($name));
+        )+
+        println!("Total time:");
+        $(
+          let dur = self.$name.duration.as_secs_f32();
+          println!("- {}: {dur} (count = {})", stringify!($name), self.$name.count);
         )+
       }
     }
