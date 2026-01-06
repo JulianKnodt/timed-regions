@@ -1,10 +1,18 @@
 use std::time::{Duration, Instant};
 
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+enum State {
+    Active,
+    #[default]
+    Inactive,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct TimeCounter {
     pub duration: Duration,
     pub count: u32,
     pub recent: Instant,
+    state: State,
 }
 
 impl Default for TimeCounter {
@@ -13,17 +21,22 @@ impl Default for TimeCounter {
             duration: Default::default(),
             count: 0,
             recent: Instant::now(),
+            state: State::Inactive,
         }
     }
 }
 
 impl TimeCounter {
     pub fn start(&mut self) {
-        self.count += 1;
         self.recent = Instant::now();
+        self.count += 1;
+        assert_eq!(self.state, State::Inactive);
+        self.state = State::Active;
     }
     pub fn stop(&mut self) {
         self.duration += self.recent.elapsed();
+        assert_eq!(self.state, State::Active);
+        self.state = State::Inactive;
     }
 }
 
@@ -53,7 +66,7 @@ macro_rules! TimerStruct {
         })+;
         $(
           let n = stringify!($name);
-          let dur = self.$name.duration.as_secs_f32();
+          let dur = self.$name.duration.as_secs_f32() / self.$name.count as f32;
           left -= 1;
           let comma = if left == 0 {
             ""
@@ -63,6 +76,14 @@ macro_rules! TimerStruct {
           writeln!(out, "  \"{n}\": {dur}{comma}")?;
         )+
         writeln!(out, "}}")
+      }
+
+      #[allow(unused)]
+      pub fn print(&self) {
+        $(
+          let dur = self.$name.duration.as_secs_f32() / self.$name.count as f32;
+          println!("{}: {dur}", stringify!($name));
+        )+
       }
     }
   };
