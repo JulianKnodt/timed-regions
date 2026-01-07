@@ -66,7 +66,7 @@ macro_rules! TimerStruct {
         })+;
         $(
           let n = stringify!($name);
-          let dur = self.$name.duration.as_secs_f32() / self.$name.count as f32;
+          let dur = self.$name.duration.as_secs_f32() / self.$name.count.max(1) as f32;
           left -= 1;
           let comma = if left == 0 {
             ""
@@ -82,7 +82,7 @@ macro_rules! TimerStruct {
       pub fn print(&self) {
         println!("Average time:");
         $(
-          let dur = self.$name.duration.as_secs_f32() / self.$name.count as f32;
+          let dur = self.$name.duration.as_secs_f32() / self.$name.count.max(1) as f32;
           println!("- {}: {dur}", stringify!($name));
         )+
         println!("Total time:");
@@ -90,6 +90,8 @@ macro_rules! TimerStruct {
           let dur = self.$name.duration.as_secs_f32();
           println!("- {}: {dur} (count = {})", stringify!($name), self.$name.count);
         )+
+        let total = $(self.$name.duration.as_secs_f32()+)+ 0.;
+        println!("Total: {total}");
       }
     }
   };
